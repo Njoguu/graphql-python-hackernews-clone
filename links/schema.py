@@ -21,7 +21,13 @@ class Query(graphene.ObjectType):
         first=graphene.Int(),
         skip=graphene.Int(),
         )
-    votes = graphene.List(VoteType)
+    
+    votes = graphene.List(
+        VoteType,
+        first=graphene.Int(),
+        last=graphene.Int(),
+        skip=graphene.Int()
+    )
 
     def resolve_links(self, info, search=None, first=None, skip=None, **kwargs):
         qs = Link.objects.all()
@@ -41,8 +47,19 @@ class Query(graphene.ObjectType):
 
         return qs
 
-    def resolve_votes(self, info, **kwargs):
-        return Vote.objects.all()
+    def resolve_votes(self, info, first=None, skip=None, last=None,**kwargs):
+        qs = Vote.objects.all()
+
+        if skip:
+            qs = qs[skip:]
+
+        if first:
+            qs = qs[:first]
+
+        if last:
+            qs = qs.order_by('-id')[:last]
+
+        return qs
 
 class CreateLink(graphene.Mutation):
     id = graphene.Int()
